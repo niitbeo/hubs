@@ -1,21 +1,31 @@
-name: hubs
+name: Node.js CI
+
 on:
-  push:
-    branches:
-    paths-ignore: ["README.md"]
-  workflow_dispatch:
+push:
+branches: [master]
+pull_request:
+branches: [master]
+
 jobs:
-  turkeyGitops:
-    uses: mozilla/hubs-ops/.github/workflows/turkeyGitops.yml@master
-    with:
-      registry: mozillareality
-      dockerfile: RetPageOriginDockerfile
-      personal_k8s_deployment: hubs
-      personal_k8s_deployment_container: hubs
-      bio_script_path: scripts/hab-wrap-and-push.sh
-    secrets:
-      DOCKER_HUB_PWD: ${{ secrets.DOCKER_HUB_PWD }}
-      GCP_TURKEYGITOPS_SA_JSON: ${{ secrets.GCP_TURKEYGITOPS_SA_JSON  }}
-      BLDR_HAB_TOKEN: ${{ secrets.BLDR_HAB_TOKEN }}
-      BLDR_RET_TOKEN: ${{ secrets.BLDR_RET_TOKEN }}
-      BLDR_RET_PUB_B64: ${{ secrets.BLDR_RET_PUB_B64 }}
+build:
+runs-on: self-hosted
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install hubs deps
+        run: npm i --force
+
+      - name: Build for Hubs
+        run: npm run build
+
+      - name: Install hubs admin deps
+        run: |
+          cd admin/
+          pwd
+          npm i --force
+          npm run build
